@@ -8,9 +8,9 @@ export const runtime = "nodejs";
 
 export async function GET(
   _: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
+  const { id } = params;
   const snap = await getDoc(doc(db, "certificates", id));
 
   if (!snap.exists()) {
@@ -88,7 +88,9 @@ export async function GET(
           <div class="center">
             <img
               class="qr"
-              src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`${baseUrl}/verify/${id}`)}"
+              src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
+                `${baseUrl}/verify/${id}`
+              )}"
             />
             <div>scan to verify</div>
           </div>
@@ -110,13 +112,13 @@ export async function GET(
 
   const browser = await puppeteer.launch({
     args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
     executablePath: await chromium.executablePath(),
-    headless: chromium.headless,
+    headless: true,
   });
 
   const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: "networkidle0" });
+  // Use a waitUntil value that matches the installed Puppeteer types
+  await page.setContent(html, { waitUntil: "load" });
 
   const pdf = await page.pdf({
     format: "A4",
