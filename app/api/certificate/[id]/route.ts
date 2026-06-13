@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import puppeteer from "puppeteer-core";
@@ -7,10 +7,11 @@ import chromium from "@sparticuz/chromium";
 export const runtime = "nodejs";
 
 export async function GET(
-  _: Request,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await context.params;
+
   const snap = await getDoc(doc(db, "certificates", id));
 
   if (!snap.exists()) {
@@ -117,7 +118,6 @@ export async function GET(
   });
 
   const page = await browser.newPage();
-  // Use a waitUntil value that matches the installed Puppeteer types
   await page.setContent(html, { waitUntil: "load" });
 
   const pdf = await page.pdf({
@@ -127,7 +127,10 @@ export async function GET(
 
   await browser.close();
 
-  return new NextResponse(pdf, {
+  // Cast pdf to any so TypeScript accepts it as BlobPart / BodyInit.
+  const pdfBlob = new Blob([pdf as any], { type: "application/pdf" });
+
+  return new Response(pdfBlob, {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="${id}.pdf"`,
