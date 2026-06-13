@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { doc, setDoc } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { db, storage } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 
 export default function DashboardPage() {
   const [certificateId, setCertificateId] = useState("");
@@ -14,51 +13,43 @@ export default function DashboardPage() {
   const [toDate, setToDate] = useState("");
   const [grade, setGrade] = useState("Excellent");
   const [status, setStatus] = useState("Verified");
-  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoUrl, setPhotoUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      let photoUrl = "";
+  try {
+    await setDoc(doc(db, "certificates", certificateId), {
+      certificateId,
+      studentName,
+      fatherName,
+      courseName,
+      fromDate,
+      toDate,
+      grade,
+      status,
+      photoUrl: photoUrl.trim(), // this is what verify & PDF already use
+      createdAt: new Date().toISOString(),
+    });
 
-      if (photo) {
-        const photoRef = ref(storage, `students/${certificateId}-${photo.name}`);
-        await uploadBytes(photoRef, photo);
-        photoUrl = await getDownloadURL(photoRef);
-      }
-
-      await setDoc(doc(db, "certificates", certificateId), {
-        certificateId,
-        studentName,
-        fatherName,
-        courseName,
-        fromDate,
-        toDate,
-        grade,
-        status,
-        photoUrl,
-        createdAt: new Date().toISOString(),
-      });
-
-      alert("Certificate saved successfully");
-      setCertificateId("");
-      setStudentName("");
-      setFatherName("");
-      setCourseName("");
-      setFromDate("");
-      setToDate("");
-      setGrade("Excellent");
-      setStatus("Verified");
-      setPhoto(null);
-    } catch (error: any) {
-      alert(error.message || "Failed to save certificate");
-    } finally {
-      setLoading(false);
-    }
-  };
+    alert("Certificate saved successfully");
+    setCertificateId("");
+    setStudentName("");
+    setFatherName("");
+    setCourseName("");
+    setFromDate("");
+    setToDate("");
+    setGrade("Excellent");
+    setStatus("Verified");
+    setPhotoUrl("");
+  } catch (error: any) {
+    alert(error.message || "Failed to save certificate");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <main className="min-h-screen bg-gray-100 px-4 py-10">
@@ -137,9 +128,9 @@ export default function DashboardPage() {
           />
 
           <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setPhoto(e.target.files?.[0] || null)}
+            value={photoUrl}
+            onChange={(e) => setPhotoUrl(e.target.value)}
+            placeholder="Student Photo URL (optional)"
             className="w-full rounded-lg border border-gray-300 px-4 py-3"
           />
 
