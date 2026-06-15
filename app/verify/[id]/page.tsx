@@ -1,16 +1,18 @@
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import Link from "next/link";
 
-async function getCertificate(id: string) {
+async function fetchCertificate(id: string) {
   const trimmed = id?.trim();
   if (!trimmed) return null;
 
-  const ref = doc(db, "certificates", trimmed);
-  const snap = await getDoc(ref);
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_SITE_URL}/api/certificate-json/${encodeURIComponent(
+      trimmed
+    )}`,
+    { cache: "no-store" }
+  );
 
-  if (!snap.exists()) return null;
-  return snap.data();
+  if (!res.ok) return null;
+  return res.json();
 }
 
 export default async function VerifyPage({
@@ -19,7 +21,7 @@ export default async function VerifyPage({
   params: { id: string };
 }) {
   const { id } = params;
-  const cert = await getCertificate(id);
+  const cert = await fetchCertificate(id);
 
   if (!cert) {
     return (
@@ -63,14 +65,23 @@ export default async function VerifyPage({
           </div>
 
           <div className="space-y-2 text-gray-800">
-            <p><b>Certificate ID:</b> {id}</p>
-            <p><b>Student Name:</b> {cert.studentName}</p>
-            <p><b>Father Name:</b> {cert.fatherName}</p>
-            <p><b>Course Name:</b> {cert.courseName}</p>
-            <p><b>From:</b> {cert.fromDate}</p>
-            <p><b>To:</b> {cert.toDate}</p>
-            <p><b>Grade:</b> {cert.grade}</p>
-            <p><b>Status:</b> {cert.status}</p>
+            <p>
+              <b>Certificate ID:</b> {id}
+            </p>
+            <p>
+              <b>Student Name:</b> {cert.studentName}</p>
+            <p>
+              <b>Father Name:</b> {cert.fatherName}</p>
+            <p>
+              <b>Course Name:</b> {cert.courseName}</p>
+            <p>
+              <b>From:</b> {cert.fromDate}</p>
+            <p>
+              <b>To:</b> {cert.toDate}</p>
+            <p>
+              <b>Grade:</b> {cert.grade}</p>
+            <p>
+              <b>Status:</b> {cert.status}</p>
           </div>
         </div>
 
