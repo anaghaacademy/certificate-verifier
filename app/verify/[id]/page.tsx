@@ -17,7 +17,12 @@ async function fetchCertificate(id: string) {
   console.log("Verify page: fetching URL =", url);
 
   try {
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetch(
+     `${process.env.NEXT_PUBLIC_SITE_URL}/api/certificate-json/
+      ${encodeURIComponent(trimmed
+      )}`,
+     { cache: "no-store" }
+      );
 
     console.log("Verify page: response status =", res.status);
 
