@@ -7,9 +7,7 @@ async function fetchCertificate(id: string) {
     return null;
   }
 
-  const url = `${process.env.NEXT_PUBLIC_SITE_URL}/api/certificate-json/${encodeURIComponent(
-    trimmed
-  )}`;
+  const url = `/api/certificate-json/${encodeURIComponent(trimmed)}`;
 
   try {
     const res = await fetch(url, { cache: "no-store" });
