@@ -6,9 +6,9 @@ export const runtime = "nodejs";
 
 export async function GET(
   _request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = context.params;  // 👈 no await here
+  const { id } = await context.params;
   const trimmed = id?.trim();
 
   if (!trimmed) {
