@@ -1,32 +1,23 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 
 async function fetchCertificate(id: string) {
   const trimmed = id?.trim();
-  console.log("Verify page: incoming id =", id);
-  console.log("Verify page: trimmed id =", trimmed);
+  if (!trimmed) return null;
 
-  if (!trimmed) {
-    console.log("Verify page: no id, returning null");
-    return null;
-  }
-
-  const url = `/api/certificate-json/${encodeURIComponent(trimmed)}`;
-  console.log("Verify page: fetching URL =", url);
+  // Build absolute URL from the current request host
+  const headersList = headers();
+  const host = headersList.get("host");
+  const protocol = host?.startsWith("localhost") ? "http" : "https";
+  const url = `${protocol}://${host}/api/certificate-json/${encodeURIComponent(
+    trimmed
+  )}`;
 
   try {
     const res = await fetch(url, { cache: "no-store" });
-    console.log("Verify page: response status =", res.status);
-
-    if (!res.ok) {
-      console.log("Verify page: res not ok, returning null");
-      return null;
-    }
-
-    const data = await res.json();
-    console.log("Verify page: data received =", data);
-    return data;
-  } catch (err) {
-    console.error("Verify page: fetch error =", err);
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
     return null;
   }
 }
@@ -36,12 +27,10 @@ export default async function VerifyPage({
 }: {
   params: { id: string };
 }) {
-  console.log("VerifyPage params =", params);
   const { id } = params;
   const cert = await fetchCertificate(id);
 
   if (!cert) {
-    console.log("VerifyPage: cert is null, rendering Not Found");
     return (
       <main className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
         <div className="rounded-2xl bg-white p-8 shadow max-w-lg w-full text-center">
@@ -59,8 +48,6 @@ export default async function VerifyPage({
       </main>
     );
   }
-
-  console.log("VerifyPage: cert found, rendering certificate");
 
   return (
     <main className="min-h-screen bg-gray-100 px-4 py-10">
