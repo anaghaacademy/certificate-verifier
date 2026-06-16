@@ -1,28 +1,64 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase"; // same as in app/api/certificate-json/[id]/route.ts
 
-async function fetchCertificateFromFirestore(id: string) {
-  const trimmed = id?.trim();
-  if (!trimmed) return null;
+type Certificate = {
+  certificateId: string;
+  studentName: string;
+  fatherName: string;
+  courseName: string;
+  fromDate: string;
+  toDate: string;
+  grade: string;
+  photoUrl: string;
+  status: string;
+  createdAt: string;
+};
 
-  const ref = doc(db, "certificates", trimmed); // same collection and id as API
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) {
-    return null;
-  }
-
-  return snap.data() as any;
-}
-
-export default async function VerifyPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function VerifyPage({ params }: { params: { id: string } }) {
   const { id } = params;
-  const cert = await fetchCertificateFromFirestore(id);
+  const [cert, setCert] = useState<Certificate | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const trimmed = id?.trim();
+    if (!trimmed) {
+      setLoading(false);
+      return;
+    }
+
+    const url = `/api/certificate-json/${encodeURIComponent(trimmed)}`;
+
+    (async () => {
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) {
+          setCert(null);
+        } else {
+          const data = await res.json();
+          setCert(data);
+        }
+      } catch {
+        setCert(null);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+        <div className="rounded-2xl bg-white p-8 shadow max-w-lg w-full text-center">
+          <h1 className="text-2xl font-bold text-purple-700">Verifying...</h1>
+          <p className="mt-3 text-gray-600">
+            Please wait while we verify your certificate ID.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   if (!cert) {
     return (
@@ -67,7 +103,7 @@ export default async function VerifyPage({
 
           <div className="space-y-2 text-gray-800">
             <p>
-              <b>Certificate ID:</b> {id}
+              <b>Certificate ID:</b> {cert.certificateId}
             </p>
             <p>
               <b>Student Name:</b> {cert.studentName}
@@ -95,7 +131,7 @@ export default async function VerifyPage({
 
         <div className="mt-8 flex flex-wrap gap-4">
           <Link
-            href={`/api/certificate/${id}`}
+            href={`/api/certificate/${cert.certificateId}`}
             target="_blank"
             className="rounded-lg bg-purple-700 px-5 py-3 text-white"
           >
