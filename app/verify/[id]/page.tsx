@@ -1,25 +1,21 @@
 import Link from "next/link";
-import { headers } from "next/headers";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase"; // same path as in your API route
 
-async function fetchCertificate(id: string) {
+async function fetchCertificateFromFirestore(id: string) {
   const trimmed = id?.trim();
   if (!trimmed) return null;
 
-  // Build absolute URL from the current request host
-  const headersList = await headers();          // 👈 await here
-  const host = headersList.get("host");
-  const protocol = host?.startsWith("localhost") ? "http" : "https";
-  const url = `${protocol}://${host}/api/certificate-json/${encodeURIComponent(
-    trimmed
-  )}`;
+  const ref = doc(db, "certificates", trimmed);
+  const snap = await getDoc(ref);
 
-  try {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
+  if (!snap.exists()) {
     return null;
   }
+
+  // snap.data() should have status, certificateId, grade, etc.,
+  // exactly like your API returns
+  return snap.data() as any;
 }
 
 export default async function VerifyPage({
@@ -28,7 +24,7 @@ export default async function VerifyPage({
   params: { id: string };
 }) {
   const { id } = params;
-  const cert = await fetchCertificate(id);
+  const cert = await fetchCertificateFromFirestore(id);
 
   if (!cert) {
     return (
@@ -76,26 +72,19 @@ export default async function VerifyPage({
               <b>Certificate ID:</b> {id}
             </p>
             <p>
-              <b>Student Name:</b> {cert.studentName}
-            </p>
+              <b>Student Name:</b> {cert.studentName}</p>
             <p>
-              <b>Father Name:</b> {cert.fatherName}
-            </p>
+              <b>Father Name:</b> {cert.fatherName}</p>
             <p>
-              <b>Course Name:</b> {cert.courseName}
-            </p>
+              <b>Course Name:</b> {cert.courseName}</p>
             <p>
-              <b>From:</b> {cert.fromDate}
-            </p>
+              <b>From:</b> {cert.fromDate}</p>
             <p>
-              <b>To:</b> {cert.toDate}
-            </p>
+              <b>To:</b> {cert.toDate}</p>
             <p>
-              <b>Grade:</b> {cert.grade}
-            </p>
+              <b>Grade:</b> {cert.grade}</p>
             <p>
-              <b>Status:</b> {cert.status}
-            </p>
+              <b>Status:</b> {cert.status}</p>
           </div>
         </div>
 
