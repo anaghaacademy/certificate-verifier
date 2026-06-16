@@ -33,13 +33,16 @@ export default function VerifyPage({ params }: { params: { id: string } }) {
     (async () => {
       try {
         const res = await fetch(url, { cache: "no-store" });
+        console.log("Verify fetch status", res.status); // 👈 add this
         if (!res.ok) {
           setCert(null);
         } else {
           const data = await res.json();
+          console.log("Verify fetch data", data);        // 👈 and this
           setCert(data);
         }
-      } catch {
+      } catch (err) {
+        console.error("Verify fetch error", err);
         setCert(null);
       } finally {
         setLoading(false);
