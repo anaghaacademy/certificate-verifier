@@ -1,20 +1,18 @@
 import Link from "next/link";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase"; // same path as in your API route
+import { db } from "@/lib/firebase"; // same as in app/api/certificate-json/[id]/route.ts
 
 async function fetchCertificateFromFirestore(id: string) {
   const trimmed = id?.trim();
   if (!trimmed) return null;
 
-  const ref = doc(db, "certificates", trimmed);
+  const ref = doc(db, "certificates", trimmed); // same collection and id as API
   const snap = await getDoc(ref);
 
   if (!snap.exists()) {
     return null;
   }
 
-  // snap.data() should have status, certificateId, grade, etc.,
-  // exactly like your API returns
   return snap.data() as any;
 }
 
@@ -72,19 +70,26 @@ export default async function VerifyPage({
               <b>Certificate ID:</b> {id}
             </p>
             <p>
-              <b>Student Name:</b> {cert.studentName}</p>
+              <b>Student Name:</b> {cert.studentName}
+            </p>
             <p>
-              <b>Father Name:</b> {cert.fatherName}</p>
+              <b>Father Name:</b> {cert.fatherName}
+            </p>
             <p>
-              <b>Course Name:</b> {cert.courseName}</p>
+              <b>Course Name:</b> {cert.courseName}
+            </p>
             <p>
-              <b>From:</b> {cert.fromDate}</p>
+              <b>From:</b> {cert.fromDate}
+            </p>
             <p>
-              <b>To:</b> {cert.toDate}</p>
+              <b>To:</b> {cert.toDate}
+            </p>
             <p>
-              <b>Grade:</b> {cert.grade}</p>
+              <b>Grade:</b> {cert.grade}
+            </p>
             <p>
-              <b>Status:</b> {cert.status}</p>
+              <b>Status:</b> {cert.status}
+            </p>
           </div>
         </div>
 
