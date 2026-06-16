@@ -6,7 +6,7 @@ async function fetchCertificate(id: string) {
   if (!trimmed) return null;
 
   // Build absolute URL from the current request host
-  const headersList = headers();
+  const headersList = await headers();          // 👈 await here
   const host = headersList.get("host");
   const protocol = host?.startsWith("localhost") ? "http" : "https";
   const url = `${protocol}://${host}/api/certificate-json/${encodeURIComponent(
